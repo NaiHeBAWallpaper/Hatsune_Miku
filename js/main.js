@@ -620,6 +620,34 @@ function load(binaryPaths, atlasPaths) {
 	canvas.style.visibility = 'visible';
 }
 
+const GLARE_SLOTS = new Set([
+	"BG spot light_02", "BG spot light_21", "BG spot light_24", "BG spot light_12",
+	"BG spot light_18", "BG spot light_15", "BG spot light_2", "BG spot light_6",
+	"BG spot light_9", "BG light 1_0", "BG light 1_1", "BG light 2",
+	"BG light 3", "BG light_red 2", "BG light_red 4", "screen circle M_R_1",
+	"screen circle 1_3", "screen circle M_B_1", "screen circle 2_3", "amp light 1_01",
+	"amp light 1_02", "amp light 1_03", "amp light 2_01", "amp light 2_02",
+	"stage light_09", "stage light_08", "stage light_07", "stage light_06",
+	"stage light_05", "stage light_04", "stage light_03", "stage light_02",
+	"stage light_01", "spot light 4_01", "spot light 4_02", "spot light 1_03",
+	"spot light 1_8", "spot light 1_5", "spot light 1_3", "spot light 1_9",
+	"spot light 1_6", "spot light 1_4", "spot light 1_10", "spot light 1_7",
+	"FX_ToneScreen", "2_FX_Tone_screen", "2_spot light 1_03", "2_spot light 1_5",
+	"2_spot light 1_6", "2_spot light 1_7", "2_spot light 1_3", "2_spot light 1_4"
+]);
+const GLARE_OPACITY = 0.4;
+
+// Scale attachment opacity once so animated slot colors still control the light.
+function applyGlareOpacity(skeletonData) {
+	for (const skin of skeletonData.skins) {
+		for (const { slotIndex, attachment } of skin.getAttachments()) {
+			const slot = skeletonData.slots[slotIndex];
+			if (!GLARE_SLOTS.has(slot.name) || slot.blendMode !== 1 || !attachment.color) continue;
+			attachment.color.a *= GLARE_OPACITY;
+		}
+	}
+}
+
 function loadSpineData(binaryPath, atlasPath, premultipliedAlpha) {
 	// Load the texture atlas from the AssetManager.
 	let atlas = assetManager.get(atlasPath);
@@ -633,6 +661,7 @@ function loadSpineData(binaryPath, atlasPath, premultipliedAlpha) {
 	// Set the scale to apply during parsing, parse the file, and create a new skeleton.
 	skeletonBinary.scale = 1;
 	let skeletonData = skeletonBinary.readSkeletonData(assetManager.get(binaryPath));
+	applyGlareOpacity(skeletonData);
 	let skeleton = new spine.Skeleton(skeletonData);
 	let bounds = calculateSetupPoseBounds(skeleton);
 
