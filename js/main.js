@@ -43,7 +43,8 @@ const subtitleLocales = {
 	Chinese: 'zh-Hans',
 	TraditionalChinese: 'zh-Hant',
 	Japanese: 'ja',
-	Korean: 'ko'
+	Korean: 'ko',
+	Thai: 'th'
 };
 
 const CHARACTER = 'CH9999';
@@ -64,14 +65,15 @@ const AUDIO_DETAIL = [
 				"(People are listening to my songs... Truly listening. I can finally reach them again.)"
 			],
 			Chinese: [
-				"（大家都在倾听……我的歌、我的话语）"
+				"（大家都在认真倾听我的歌声……我的话语……）"
 			],
 			TraditionalChinese: [
 				"（我的歌曲、我的話語……大家都在認真傾聽）"
 			],
 			Korean: [
 				"(사람들이 모두 내 노래에…… 내 말에…… 귀를 기울여 주고 있어.)"
-			]
+			],
+			Thai: ["(ผู้คนกำลังฟังเพลงของฉัน... และคำพูดของฉันอยู่…)"]
 		}
 	},
 	{
@@ -80,17 +82,18 @@ const AUDIO_DETAIL = [
 				"（自分の気持ちを込めて歌うのって、こんなに気持ち良いことだったんだ……！）"
 			],
 			English: [
-				"(I'm so grateful and happy that I can do this again! This is fun, and I'm so happy!)"
+				"(I never thought that singing with all my heart would be this fun... I'm so happy!)"
 			],
 			Chinese: [
-				"（注入感情地歌唱，这样的感觉真好……！）"
+				"（倾注自己真心地歌唱，原来是这么幸福的事啊……）"
 			],
 			TraditionalChinese: [
 				"（把自己的心情傾注在歌曲裡，原來是這麼快樂的一件事啊……！）"
 			],
 			Korean: [
 				"(자신의 진심을 담아서 노래하는 것이 이렇게 기분 좋은 일이었다니…….)"
-			]
+			],
+			Thai: ["(การได้ร้องเพลงที่เปี่ยมไปด้วยความรู้สึก ของตัวเอง มันรู้สึกดีแบบนี้เองสินะ)"]
 		}
 	},
 	{
@@ -102,14 +105,15 @@ const AUDIO_DETAIL = [
 				"(I'm so grateful and happy that I can do this again!)"
 			],
 			Chinese: [
-				"（能像这样子为了大家而歌唱……好开心，好开心……！）"
+				"（能这样为大家唱歌……真的好开心、好幸福……！）"
 			],
 			TraditionalChinese: [
 				"（能像這樣，為了大家而歌唱……我真的很開心，很快樂……！）"
 			],
 			Korean: [
 				"(이렇게, 모두를 위해서 노래할 수 있다니…… 즐거워, 행복해……!)"
-			]
+			],
+			Thai: ["(ที่ฉันยังร้องเพลงเพื่อทุกคน ได้แบบนี้ ฉันสนุก... และมีความสุขมากค่ะ!)"]
 		}
 	},
 	{
@@ -121,14 +125,15 @@ const AUDIO_DETAIL = [
 				"(I want to use my voice to reach them forever!)"
 			],
 			Chinese: [
-				"（想要一直这样唱下去……！）"
+				"（好想就这样一直，一直唱下去！）"
 			],
 			TraditionalChinese: [
 				"（我想要一直，一直唱下去……！）"
 			],
 			Korean: [
 				"(이대로 계속, 계속 노래하고 싶어!)"
-			]
+			],
+			Thai: ["(ฉันอยากให้เป็นแบบนี้ต่อไปเรื่อยๆ เลย!)"]
 		}
 	}
 ];
@@ -240,7 +245,7 @@ function playVoiceline() {
 			track.play().catch(finish);
 
 			if (dialogBox) {
-				textbox.textContent = dialog[window.selectedLanguage][index];
+				textbox.textContent = getSubtitleText(dialog, window.selectedLanguage, index);
 				textbox.style.opacity = 1;
 			}
 		},
@@ -410,6 +415,16 @@ function setMouse(event) {
 	return { x: ax - canvas.width * positionX, y: ay - canvas.height * positionY };
 }
 
+function getSubtitleText(dialog, language, index) {
+	let text = dialog?.[language]?.[index];
+	if (text == null && language === 'Thai') {
+		language = 'English';
+		text = dialog?.[language]?.[index];
+	}
+	textbox.lang = subtitleLocales[language];
+	return text ?? "";
+}
+
 function updateSubtitleLanguage() {
 	let language = subtitleLanguagePreference;
 	if (language === 'auto') {
@@ -423,6 +438,8 @@ function updateSubtitleLanguage() {
 			language = 'Japanese';
 		} else if (primary === 'ko' || primary === 'korean' || primary === 'koreana') {
 			language = 'Korean';
+		} else if (primary === 'th' || primary === 'thai') {
+			language = 'Thai';
 		} else {
 			language = 'English';
 		}
@@ -432,7 +449,7 @@ function updateSubtitleLanguage() {
 	window.selectedLanguage = language;
 	textbox.lang = subtitleLocales[language];
 	const clip = currentTracks.at(-1);
-	if (dialogBox && clip) textbox.textContent = clip.dialog[language][clip.index];
+	if (dialogBox && clip) textbox.textContent = getSubtitleText(clip.dialog, language, clip.index);
 }
 
 function init() {
